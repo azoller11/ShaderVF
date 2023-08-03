@@ -2,7 +2,7 @@
   "expo": {
     "name": "ShaderVF",
     "slug": "ShaderVF",
-    "version": "1.0.0",
+    "version": "1.0.29",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -15,7 +15,8 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.azoller.ShaderVF"
     },
     "android": {
       "adaptiveIcon": {
@@ -25,6 +26,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "0d8f12c5-6d16-403a-a4ab-6f4660cb1c8b"
+      }
     }
   }
 }
