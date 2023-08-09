@@ -23,7 +23,7 @@ void main() {
 `;
 
 
-export default function Create3DScreen() {
+export default function Create3DScreen({ route }) {
 
   const [vertices, setVertices] = useState(new Float32Array([
     -0.5, -0.5, 0.5, 1.0,
@@ -70,7 +70,7 @@ export default function Create3DScreen() {
           6, 5, 1, 6, 1, 2,  // right
         ]);
         break;
-      case 'triangle':
+      case 'pyramid':
         // draw triangle
         v = new Float32Array([
           0.0, 1.0, 0.0, 1.0,  // Top vertex
@@ -89,7 +89,7 @@ export default function Create3DScreen() {
         break;
       case 'circle':
         // draw circle
-        const sphereData = createSphere(2, 20, 20);
+        const sphereData = createSphere(1, 30, 30);
         v = (sphereData.vertices);
         i = (sphereData.indices);
         break;
@@ -173,14 +173,15 @@ export default function Create3DScreen() {
     }
 
     for (let latNumber = 0; latNumber < latBands; latNumber++) {
-        for (let longNumber = 0; longNumber < longBands; longNumber++) {
-            let first = (latNumber * (longBands + 1)) + longNumber;
-            let second = first + longBands + 1;
-
-            indices.push(first, second, first + 1);
-            indices.push(second, second + 1, first + 1);
-        }
-    }
+      for (let longNumber = 0; longNumber < longBands; longNumber++) {
+          let first = (latNumber * (longBands + 1)) + longNumber;
+          let second = first + longBands + 1;
+  
+          indices.push(first, second, first + 1);
+          indices.push(first + 1, second, second + 1);
+      }
+  }
+  
 
     return {
         vertices: new Float32Array(vertices),
@@ -190,9 +191,10 @@ export default function Create3DScreen() {
 
   //////////Shader selector 
   const [shaderData, setShaderData] = useState([]);
-  const [selectedShader, setSelectedShader] = useState('');
+  const [selectedShader, setSelectedShader] = useState(route.params.shader ? route.params.shader.code : fragShaderSrc);
   const changeShader = (newShaderCode) => setSelectedShader(newShaderCode);
   let changingShader = useRef(false);
+  const programRef = useRef(null);
   // Fetch shaders from AsyncStorage on component mount
   useEffect(() => {
     const fetchShaders = async () => {
@@ -204,16 +206,18 @@ export default function Create3DScreen() {
         })
       );
       setShaderData(fetchedShaderData);
-      setSelectedShader(fetchedShaderData[0]?.code || '');
+      //setSelectedShader(fetchedShaderData[0]?.code || '');
     };
     fetchShaders();
   }, []);
     
   // Effect to re-create the WebGL context when the shader changes
+/*
   useEffect(() => {
     gl.current && onContextCreate(gl.current);
   }, [selectedShader]);
-
+*/
+   
     
 
    //////////Camera 
@@ -224,6 +228,7 @@ export default function Create3DScreen() {
 
 
   ////////////RENDER ENGINE
+
 
 
   function updateBuffers(_gl, vertices, indices) {
@@ -244,6 +249,8 @@ export default function Create3DScreen() {
   var program = useRef(null);
   const cameraPosition = useRef([0, 0, 5]);
   let startTime = Date.now();
+  const animationFrameId = useRef(null); // Declare a variable to keep a reference to the request ID
+  const animationFrameRef = useRef(null);
 
   function onContextCreate(_gl) {
     gl.current = _gl;
@@ -278,7 +285,7 @@ export default function Create3DScreen() {
     _gl.uniform2f(uResolutionLocation, _gl.drawingBufferWidth, _gl.drawingBufferHeight);
 
  
-
+    programRef.current = program;
 
     let modelMatrix = mat4.create();
     let viewMatrix = mat4.lookAt(mat4.create(), cameraPosition, [0, 0, 0], [0, 1, 0]);
@@ -303,7 +310,7 @@ export default function Create3DScreen() {
      let time = (Date.now() - startTime) / 1000.0;
      _gl.uniform1f(uTimeLocation, time);
 
-
+    
       _gl.clear(_gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT);
      // _gl.drawElements(_gl.TRIANGLES, 36, _gl.UNSIGNED_SHORT, 0);
       _gl.drawElements(_gl.TRIANGLES, indices.length, _gl.UNSIGNED_SHORT, 0);
@@ -311,12 +318,42 @@ export default function Create3DScreen() {
       _gl.flush();
       _gl.endFrameEXP();
   
-      requestAnimationFrame(animate);
+      animationFrameRef.current  = requestAnimationFrame(animate); // Store the request ID
+
     };
 
 
     animate();
   }
+
+    useEffect(() => {
+    if (selectedShader != null) {
+      gl.current && onContextCreate(gl.current);
+    }
+  
+    return () => {
+      // Cancel the previous animation frame request when the shader changes
+      if (animationFrameId != null) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [selectedShader]);
+
+
+  // Clean up resources when the component is unmounted
+  useEffect(() => {
+    return () => {
+      if (animationFrameId.current != null) {
+        cancelAnimationFrame(animationFrameId.current);
+        console.log('removing animation..');
+      }
+      if (gl.current && programRef.current) {
+        gl.current.deleteProgram(programRef.current);
+        console.log('deleting GL..');
+      }
+      gl.current = null;
+    };
+  }, []);
 
   
   return (
@@ -335,14 +372,24 @@ export default function Create3DScreen() {
 
 
       <ScrollView horizontal style={styles.shapeSelector}>
-      {['cube', 'triangle', 'circle', 'rhombus', 'torus'].map((shape) => (
+      {['cube', 'pyramid', 'circle', 'rhombus', 'torus'].map((shape) => (
         <TouchableOpacity key={shape} style={styles.shaderButton} onPress={() => drawShape(shape)}>
           <Text style={styles.shaderButtonText}>{shape}</Text>
         </TouchableOpacity>
       ))}
     </ScrollView>
 
-      <ScrollView horizontal style={styles.shaderSelector}>
+      
+     
+
+
+
+  </View>
+  );
+}
+
+/*
+ <ScrollView horizontal style={styles.shaderSelector}>
         {shaderData.map((shader) => (
           <TouchableOpacity key={shader.name} style={styles.shaderButton} onPress={() => changeShader(shader.code)}>
             <Text style={styles.shaderButtonText}>{shader.name}</Text>
@@ -350,11 +397,7 @@ export default function Create3DScreen() {
         ))}
       </ScrollView>
 
-
-
-  </View>
-  );
-}
+*/
 
 const styles = StyleSheet.create({
   container: {
