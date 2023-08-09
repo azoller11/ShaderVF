@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { StyleSheet, Text, View, Dimensions, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { StyleSheet, Text, View, Dimensions, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Icon } from 'react-native-elements';
 
@@ -56,18 +56,18 @@ const MainScreen = () => {
             <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ShaderList', {global: true})}>
             <View style={{flexDirection: "row"}}>
                 <Icon name="globe" type="font-awesome" size={30} color='#3366CC' />
-                <Text style={styles.text}>Global Shaders</Text>
+                <Text style={styles.text}>Pre-Saved Shaders</Text>
             </View>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ShaderList')}>
+            <TouchableOpacity style={styles.button} onPress={() => Alert.alert('Tutorials Coming Soon!')}>
             <View style={{flexDirection: "row"}}>
                 <Icon name="question" type="font-awesome" size={30} color='#3366CC' />
                 <Text style={styles.text}>Tutorials</Text>
             </View>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ShaderList')}>
+            <TouchableOpacity style={styles.button} onPress={() => Alert.alert('Settings Coming Soon!')}>
             <View style={{flexDirection: "row"}}>
                 <Icon name="gear" type="font-awesome" size={30} color='#3366CC' />
                 <Text style={styles.text}>Settings</Text>
