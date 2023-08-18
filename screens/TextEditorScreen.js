@@ -48,6 +48,8 @@ const TextEditorScreen = ({ route }) => {
   const [shader, setShader] = useState(route.params.shader ? route.params.shader.code : initialShaderCode);
   const [shaderName, setShaderName] = useState(route.params.shader ? route.params.shader.name : '');
   const [shaderDescription, setShaderDescription] = useState(route.params.shader ? route.params.shader.description : '');
+  const [shaderAuthor, setShaderAuthor] = useState(route.params.shader ? route.params.shader.author : '');
+  const [shaderGenre, setShaderGenre] = useState(route.params.shader ? route.params.shader.genre : '');
 
 
   useEffect(() => {
@@ -74,10 +76,12 @@ const TextEditorScreen = ({ route }) => {
   const saveShader = async () => {
     try {
       let shaderData = {
-        name: shaderName,
-        description: shaderDescription,
+        author: shaderAuthor,
         code: code,
-        author: '',
+        description: shaderDescription,
+        name: shaderName,
+        genre: shaderGenre,
+        datesubmitted: ''
       }
   
       // Convert shaderData to a string using JSON.stringify
@@ -193,6 +197,7 @@ const TextEditorScreen = ({ route }) => {
   
 
   function prev() {
+    Keyboard.dismiss();
     console.log(preview);
     setPreview(!preview);
   }
@@ -250,7 +255,7 @@ const TextEditorScreen = ({ route }) => {
                 
             },
             ...(keyboard.keyboardShown
-                ? { marginBottom: keyboard.keyboardHeight - (insets.bottom*3) }
+                ? { marginBottom: keyboard.keyboardHeight - (insets.bottom*1) }
                 : {}),
             }}
             language="glsl" // change to your preferred language if 'glsl' doesn't work
@@ -284,6 +289,20 @@ const TextEditorScreen = ({ route }) => {
             onChangeText={setShaderDescription}
             style={styles.input}
             value={shaderDescription}
+          />
+
+          <TextInput
+            placeholder="Shader Author"
+            onChangeText={setShaderAuthor}
+            style={styles.input}
+            value={shaderAuthor}
+          />
+
+          <TextInput
+            placeholder="Shader Genre"
+            onChangeText={setShaderGenre}
+            style={styles.input}
+            value={shaderGenre}
           />
 
           <TextInput

@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import { StyleSheet, Text, View, Dimensions, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Icon } from 'react-native-elements';
+import Constants from 'expo-constants';
+
 
 
 const MainScreen = () => {
@@ -9,11 +11,22 @@ const MainScreen = () => {
    
 
     const [dropdownVisible, setDropdownVisible] = useState(false);
+    const [dropdownPreVisible, setDropdownPreVisible] = useState(false);
 
     const DropdownItem = ({ title, code }) => (
         <TouchableOpacity style={styles.dropdownItem} onPress={() => navigation.navigate('TextEditor', { shader: {code:codeList[code].code}})} >
-          <View style={{flexDirection: "row"}}>
-          <Icon name="code" type="font-awesome" size={20} color='#3366CC' />
+          <View style={{flexDirection: "row", left:20}}>
+          <Icon name="list" type="font-awesome" size={30} color='#3366CC' />
+            <Text style={styles.text}>{title}</Text>
+          </View>
+          
+        </TouchableOpacity>
+      );
+
+      const DropdownPreSavedItem = ({ title, genre }) => (
+        <TouchableOpacity style={styles.dropdownItem} onPress={() => navigation.navigate('ShaderList', {global: true, genre: genre})} >
+          <View style={{flexDirection: "row", left:20}}>
+          <Icon name="list" type="font-awesome" size={30} color='#3366CC' />
             <Text style={styles.text}>{title}</Text>
           </View>
           
@@ -26,8 +39,8 @@ const MainScreen = () => {
         <View style={{padding:40}}></View>
 
           <View style={{ alignItems: 'center'}}>
-            <Image source={require('../assets/icon-transparent.png')} style={{width:120, height:120}}/>
-            <Text style={{color:'white', padding:10, fontSize:20}}>ShaderVF</Text>
+            <Image source={require('../assets/icon-transparent.png')} style={{width:140, height:140, borderRadius:20}}/>
+            <Text style={{color:'white', padding:10, fontSize:20}}>ShaderVF - {Constants.expoConfig.version}</Text>
           </View>
 
         <ScrollView>
@@ -35,30 +48,43 @@ const MainScreen = () => {
         
             <TouchableOpacity style={styles.button} onPress={() => setDropdownVisible(!dropdownVisible)}>
             <View style={{flexDirection: "row"}}>
-                <Icon name="code" type="font-awesome" size={30} color='#3366CC' />
+                <Icon name="laptop-code" type="font-awesome-5" size={30} color='#3366CC' />
                 <Text style={styles.text}>Advanced Shader Editor</Text>
             </View>
-            
             </TouchableOpacity>
             {dropdownVisible && (
             <View style={styles.dropdownContainer}>
             <DropdownItem title="New empty template" code="0" />
             <DropdownItem title="New basic template" code="1" />
+            <DropdownItem title="New animated template" code="2" />
             </View>
             )}
-            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ShaderList', {global: false})}>
+            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ShaderList', {global: false, genre: "saved"})}>
             <View style={{flexDirection: "row"}}>
-                <Icon name="save" type="font-awesome" size={30} color='#3366CC' />
-                <Text style={styles.text}>Saved Shaders</Text>
+                <Icon name="user" type="font-awesome" size={30} color='#3366CC' />
+                <Text style={styles.text}>My Saved Shaders</Text>
             </View>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ShaderList', {global: true})}>
+            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ShaderList', {global: true, genre: "submissions"})}>
             <View style={{flexDirection: "row"}}>
                 <Icon name="globe" type="font-awesome" size={30} color='#3366CC' />
+                <Text style={styles.text}>Online submissions</Text>
+            </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.button} onPress={() => setDropdownPreVisible(!dropdownPreVisible)}>
+            <View style={{flexDirection: "row"}}>
+                <Icon name="file" type="font-awesome" size={30} color='#3366CC' />
                 <Text style={styles.text}>Pre-Saved Shaders</Text>
             </View>
             </TouchableOpacity>
+            {dropdownPreVisible && (
+            <View style={styles.dropdownContainer}>
+              <DropdownPreSavedItem title="All shaders" genre="all" />
+              <DropdownPreSavedItem title="Fractals" genre="fractals" />
+            </View>
+            )}
 
             <TouchableOpacity style={styles.button} onPress={() => Alert.alert('Tutorials Coming Soon!')}>
             <View style={{flexDirection: "row"}}>
@@ -66,6 +92,7 @@ const MainScreen = () => {
                 <Text style={styles.text}>Tutorials</Text>
             </View>
             </TouchableOpacity>
+            
 
             <TouchableOpacity style={styles.button} onPress={() => Alert.alert('Settings Coming Soon!')}>
             <View style={{flexDirection: "row"}}>
@@ -115,10 +142,10 @@ const MainScreen = () => {
 
     {code:
         
-    `precision mediump float;
+    `precision highp float;
 
 uniform vec2 u_resolution;
-uniform vec2 u_time;
+uniform float u_time; 
     
 void main() {
     
@@ -126,16 +153,32 @@ void main() {
     `},
 
     {code:
-`precision mediump float;
+`precision highp float;
 
 uniform vec2 u_resolution;
-uniform vec2 u_time;
+uniform float u_time; 
     
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     gl_FragColor = vec4(uv.x, uv.y, 0.5, 1.0);
 }
     `},
+    {code:
+      `precision highp float;
+
+uniform vec2 u_resolution;
+uniform float u_time; 
+
+void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    
+    // Oscillating values between 0.0 and 1.0 based on u_time
+    float red = 0.5 + 0.5 * sin(u_time);
+    float green = 0.5 + 0.5 * sin(u_time + 3.14159);  // Pi phase offset to make it out of sync with red
+
+    gl_FragColor = vec4(red, green, uv.y, 1.0);
+}
+          `},
     
 
   ];

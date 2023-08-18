@@ -1,6 +1,6 @@
 {
   "name": "shadervf",
-  "version": "1.0.33",
+  "version": "1.0.35",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
@@ -14,10 +14,13 @@
     "@react-navigation/native": "^6.1.7",
     "@react-navigation/native-stack": "^6.9.13",
     "@rivascva/react-native-code-editor": "^1.2.2",
+    "axios": "^1.4.0",
     "base-64": "^1.0.0",
     "crypto-js": "^4.1.1",
     "expo": "~49.0.5",
+    "expo-camera": "~13.4.2",
     "expo-gl": "~13.0.1",
+    "expo-media-library": "~15.4.1",
     "expo-status-bar": "~1.6.0",
     "gl-matrix": "^3.4.3",
     "react": "18.2.0",

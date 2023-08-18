@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Keyboard, View, TouchableOpacity, Text, StyleSheet, FlatList, Button,Animated,RefreshControl, Alert   } from 'react-native';
+import { Keyboard, View, TouchableOpacity, Text, StyleSheet, FlatList, Button,Animated,RefreshControl, Alert, Dimensions   } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { mat4 } from 'gl-matrix';
-import { GLView } from 'expo-gl';
+import { GLView, saveAsync, GLSnapshot   } from 'expo-gl';
 import { Icon } from 'react-native-elements';
+import * as MediaLibrary from 'expo-media-library';
+import axios from 'axios';
 
 const ShaderListScreen = ({route}) => {
     const shaderOptions = ['Option 1', 'Option 2', 'Option 3']; // Replace with your actual options
@@ -13,9 +15,21 @@ const ShaderListScreen = ({route}) => {
     const [shaders, setShaders] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
     const rowSwipeAnimatedValues = {}; 
-    const [global, setGlobal] = useState(route.params.global ? route.params.global : false);
-    const [selectedShader, setSelectedShader] = useState({code: `precision mediump float;
+    
+    const [fullScreen, setFullScreen] = useState(false);
+    const [screenHeight, setScreenHeight] = useState(200);
+    const windowHeight = Dimensions.get('window').height;
 
+    const API_URL = 'https://floating-coast-37601-51cf65d97a59.herokuapp.com'; 
+
+    const [contextKey, setContextKey] = useState(1);
+
+    const [global, setGlobal] = useState(route.params.global ? route.params.global : false);
+    const [genre, setGenre] = useState(route.params.genre ? route.params.genre : "all");
+    const [selectedShader, setSelectedShader] = useState({code: `precision mediump float;
+    
+    
+    
     
     precision mediump float;
     
@@ -72,6 +86,7 @@ const ShaderListScreen = ({route}) => {
     programRef.current = program;
     
     const render = (time) => {
+      gl.drawingBufferHeight = screenHeight * 2;
       gl.uniform2f(u_resolution, gl.drawingBufferWidth, gl.drawingBufferHeight);
       gl.uniform1f(u_time, time * 0.001); 
       gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
@@ -121,6 +136,20 @@ const ShaderListScreen = ({route}) => {
   }, []);
 
 
+  useEffect(() => {
+    if (fullScreen) {
+      setScreenHeight(windowHeight - 300);
+    } else {
+      setScreenHeight(200);
+    }
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);  
+      setContextKey(prevKey => prevKey + 1);
+    }
+    
+  }, [fullScreen]); 
+
+
     const loadShaders = async () => {
 
       if (!global) {
@@ -142,19 +171,20 @@ const ShaderListScreen = ({route}) => {
         }
       } else {
         try {
-          let shaderData = {
-            name: "Spherical Fractal",
-            description: "Global",
-            code: '',
-            author: 'Alex',
+          if (genre == 'all') {
+            setShaders(preSavedShaders);
           }
-          let shaderData2 = {
-            name: "Test Global2",
-            description: "Global2",
-            code: code,
-            author: 'Alex2',
+          if (genre == 'fractals') {
+            setShaders(preSavedShaders.filter(function(item) {
+              return item.genre == 'Fractal';
+            }));
           }
-          setShaders(preSavedShaders);
+          if (genre == 'submissions') {
+            getShaders();
+          }
+          
+          
+          
         } catch(error) {
 
         }
@@ -225,8 +255,8 @@ const ShaderListScreen = ({route}) => {
             <TouchableOpacity style={{}} onPress={() => navigation.navigate('Create3D', { shader: item })}>
               <Icon name="cube" type="font-awesome" size={30} color='#3366CC' />
             </TouchableOpacity>
-            {false && (
-              <TouchableOpacity style={{}} onPress={() => console.log('push to global')}>
+            {(global==false && genre=="saved") && (
+              <TouchableOpacity style={{}} onPress={() => addShader(item)}>
                 <Icon name="globe" type="font-awesome" size={30} color='#3366CC' />
               </TouchableOpacity>
             )}
@@ -238,8 +268,18 @@ const ShaderListScreen = ({route}) => {
             )}
 
 
+
+
           </View>
-         
+          <View style={{flexDirection: "row" ,marginLeft: 0, justifyContent: 'space-evenly'}}>
+            <Text style={styles.smalldescription}>Author: {item.author}</Text>
+            <Text style={styles.smalldescription}>Genre: {item.genre}</Text>
+          </View>
+          <View style={{flexDirection: "row" ,marginLeft: 0, justifyContent: 'space-evenly'}}>
+            <Text style={styles.smalldescription}>Submitted: {item.datesubmitted}</Text>
+
+          </View>
+          
 
         </View>
       );
@@ -280,16 +320,162 @@ const ShaderListScreen = ({route}) => {
           return (
             <View >
               <GLView
-                style={{height:200, width:'100%',padding:2}}
+                style={{height:screenHeight, width:'100%',padding:2}}
                 onContextCreate={(glContext) => {
                   gl.current = glContext;
                   onContextCreate(glContext);
                 }}
+                ref={glViewRef}
+                key={contextKey}
             />
             </View>
           );
         }
       }
+
+
+    //Photo capture
+    const glViewRef = useRef(null);
+    const [imageUri, setImageUri] = useState(null);
+    const [frames, setFrames] = useState([]);
+
+    //Single Image
+    const captureImage = async () => {
+      console.log('here?');
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        //alert('Sorry, we need camera roll permissions to make this work!');
+        //return false;
+      }
+     
+
+      console.log('ref: ' + JSON.stringify(gl.current));
+  
+      const snapshot = await glViewRef.current.takeSnapshotAsync();
+      setImageUri(snapshot.uri);
+      console.log(snapshot.uri);
+      saveToCameraRoll(snapshot.uri);
+    };
+
+
+    //GIF
+    const captureFrame = async () => {
+      if (glViewRef.current) {
+        const snapshot = await glViewRef.current.takeSnapshotAsync();
+        return snapshot.uri;
+      }
+      return null;
+    }
+
+    const handleCaptureGif = async () => {
+      Alert.alert('Recording Shader', 'Recording 5 second screen recording, dont move!');
+      const frameRate = 20; // 20 fps
+      const totalFrames = 5 * frameRate;
+  
+      for (let i = 0; i < totalFrames; i++) {
+        const frame = await captureFrame();
+        frames.push(frame);
+  
+        // Wait for next frame
+        await new Promise(resolve => setTimeout(resolve, 1000 / frameRate));
+      }
+  
+      const gifUri = await createGifFromFrames(frames);
+      saveToCameraRoll(gifUri);
+    }
+
+    const createGifFromFrames = async (frames) => {
+     // console.log('FRAME: ' + frames)
+      // This is a placeholder. Here you'd integrate your GIF generation code.
+      // Ideally, you'd send these frames to a backend to generate a GIF or use a library.
+      const formData = new FormData();
+  
+      frames.forEach((uri, index) => {
+        formData.append('images', {
+          uri,
+          type: 'image/jpeg',
+          name: `image${index}.jpg`,
+        });
+      });
+      console.log('Sending data...');
+      try {
+        const response = await fetch("https://localhost:5000/create-gif", {
+          method: "POST",
+          body: formData,
+        });
+    
+        const data = await response.json();
+        //return data.gifUrl;
+        console.log(data.gifUrl);
+        return "path_to_generated_gif";
+      } catch (error) {
+        console.error("Error uploading images:", error);
+        //throw error;
+      }
+      
+    }
+
+
+
+
+    const saveToCameraRoll = async (uri) => {
+      const permission = await MediaLibrary.requestPermissionsAsync();
+      
+      if (permission.granted) {
+        try {
+          const asset = await MediaLibrary.createAssetAsync(uri);
+          await MediaLibrary.createAlbumAsync('Your Album Name', asset, false);
+          Alert.alert('Success', 'Image saved to camera roll!');
+        } catch (error) {
+          Alert.alert('Error', 'Failed to save image to camera roll.');
+        }
+      } else {
+        Alert.alert('Permission denied', 'You must grant media library permissions to save the image.');
+      }
+    }
+
+
+ 
+    //Getting online shaders
+    const getShaders = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/shaders`);
+        setShaders(response.data);
+      } catch (error) {
+        console.error("Error fetching shaders:", error);
+      }
+    };
+
+    const addShader = async (shader) => {
+      console.log(shader);
+      try {
+        //shader.datesubmitted = new Date().toLocaleString();
+        var err = false;
+        if (shader.name == undefined)
+          err = true;
+        if (shader.author == undefined)
+          err = true;
+        if (shader.code == undefined)
+          err = true;
+        if (shader.description == undefined)
+          err = true;
+        if (shader.genre == undefined)
+          err = true;
+        if (err) {
+          Alert.alert('Missing information, unable to submit!');
+          return;
+        }
+        const response = await axios.post(`${API_URL}/shaders`, shader);
+        console.log(response.data);
+        Alert.alert('Shader posted successfully!');
+      } catch (error) {
+        console.error("Error adding shader:", error);
+        Alert.alert('Missing information, unable to submit!');
+      }
+    };
+
+
+
 
       return (
         <View style={styles.container}>
@@ -299,6 +485,7 @@ const ShaderListScreen = ({route}) => {
  
                 </View>
 
+          
 
           <View>
             {renderShader() }
@@ -310,7 +497,7 @@ const ShaderListScreen = ({route}) => {
       renderItem={renderItem}
       renderHiddenItem={renderHiddenItem}
       rightOpenValue={-75}
-      keyExtractor={item => item.name}
+      keyExtractor={(item, index) => index.toString()} //item => item.name
       onRowDidOpen={onRowDidOpen}
       refreshControl={
         <RefreshControl
@@ -319,6 +506,42 @@ const ShaderListScreen = ({route}) => {
         />
       }
     />
+
+
+
+        <View style={{position: 'absolute', top:screenHeight,right:30}}>
+            {fullScreen==false && (
+
+              <TouchableOpacity
+              style={{}}
+              onPress={() => setFullScreen(!fullScreen)}>
+                <Icon name="expand" type="font-awesome" size={30} color='#3366CC' />
+              </TouchableOpacity>
+            )}
+             {fullScreen==true && (
+               <TouchableOpacity
+               style={{}}
+               onPress={() => setFullScreen(!fullScreen)}>
+                  <Icon name="compress" type="font-awesome" size={30} color='#3366CC' />
+               </TouchableOpacity>
+            )}
+          </View>
+
+          <View style={{position: 'absolute', top:screenHeight,left:30}}>
+          <TouchableOpacity
+               style={{}}
+               onPress={() => captureImage()}>
+                  <Icon name="photo" type="font-awesome" size={25} color='#3366CC' />
+               </TouchableOpacity>
+          </View>
+          <View style={{position: 'absolute', top:screenHeight,left:80}}>
+          <TouchableOpacity
+               style={{}}
+               onPress={() => handleCaptureGif()}>
+                  <Icon name="video" type="font-awesome-5" size={25} color='#3366CC' />
+               </TouchableOpacity>
+          </View>
+
         </View>
       );
     };
@@ -355,6 +578,11 @@ const ShaderListScreen = ({route}) => {
           fontSize: 16,
           color:'#B0B0B0',
           padding:20,
+        },
+        smalldescription: {
+          fontSize: 14,
+          color:'#B0B0B0',
+          padding:2,
         },
 
         rowBack: {
@@ -447,6 +675,7 @@ const preSavedShaders = [
         }
     }`,
     author: 'Alex',
+    genre:'Fractal'
   },
 
   {
@@ -498,6 +727,7 @@ const preSavedShaders = [
         gl_FragColor = vec4(r, g, b, 1.0);
     }`,
     author: 'Alex',
+    genre:''
   },
   {
     name: "Rotating Blocks",
@@ -559,6 +789,7 @@ const preSavedShaders = [
         gl_FragColor = vec4(col,1.);
     }`,
     author: 'Alex',
+    genre:''
   },
   
   {
@@ -597,6 +828,7 @@ const preSavedShaders = [
     }
     `,
     author: 'Alex',
+    genre:'Fractal'
   }
   ,
   
@@ -643,6 +875,102 @@ void main() {
     
     `,
     author: 'Alex',
+    genre:'Fractal'
+  }
+  ,
+  {
+    name: "Julia Set Animated",
+    description: "Julia Set Animated Example",
+    code: `precision highp float;
+    uniform vec2 u_resolution;
+    uniform float u_time;
+
+    // Dynamic constant complex number for the Julia Set
+vec2 c = vec2(0.355 + 0.1 * sin(u_time * 0.1), 0.355 + 0.1 * cos(u_time * 0.1));
+
+// Function to compute the Julia Set iteration
+vec3 julia(vec2 p) {
+    vec2 z = p;
+    int iter = 0;
+    const int maxIter = 256;
+    while (length(z) < 4.0 && iter < maxIter) {
+        float x = (z.x * z.x - z.y * z.y) + c.x;
+        float y = (2.0 * z.x * z.y) + c.y;
+        z = vec2(x, y);
+        iter++;
+    }
+    if (iter == maxIter) return vec3(0.0); // Black if inside the Julia set
+    // Otherwise return a color based on the number of iterations
+    float norm = float(iter) / float(maxIter);
+    float hue = 2.0 * 3.14159265 * norm;
+    return vec3(sin(hue + 0.0), sin(hue + 2.0 * 3.14159265 / 3.0), sin(hue + 4.0 * 3.14159265 / 3.0));
+}
+
+void main() {
+    // Normalize coordinates
+    vec2 uv = (gl_FragCoord.xy * 2.0 - u_resolution) / min(u_resolution.y, u_resolution.x);
+    // Julia set is also typically visualized in the range -2.0 to 2.0 on both axes
+    vec2 juliaCoords = vec2(2.5 * uv.x, 2.5 * uv.y);
+    vec3 color = julia(juliaCoords);
+
+    gl_FragColor = vec4(color, 1.0);
+}
+
+
+    
+    `,
+    author: 'Alex',
+    genre:'Fractal'
+  }
+  ,
+  {
+    name: "Julia Set Zoom",
+    description: "Julia Set Zoom Example",
+    code: `precision highp float;
+    uniform vec2 u_resolution;
+    uniform float u_time;
+
+    // Dynamic constant complex number for the Julia Set
+vec2 c = vec2(0.355 + 0.1 * sin(u_time * 0.1), 0.355 + 0.1 * cos(u_time * 0.1));
+
+// Function to compute the Julia Set iteration
+vec3 julia(vec2 p) {
+    vec2 z = p;
+    int iter = 0;
+    const int maxIter = 256;
+    while (length(z) < 4.0 && iter < maxIter) {
+        float x = (z.x * z.x - z.y * z.y) + c.x;
+        float y = (2.0 * z.x * z.y) + c.y;
+        z = vec2(x, y);
+        iter++;
+    }
+    if (iter == maxIter) return vec3(0.0); // Black if inside the Julia set
+    // Otherwise return a color based on the number of iterations
+    float norm = float(iter) / float(maxIter);
+    float hue = 2.0 * 3.14159265 * norm;
+    return vec3(sin(hue + 0.0), sin(hue + 2.0 * 3.14159265 / 3.0), sin(hue + 4.0 * 3.14159265 / 3.0));
+}
+
+void main() {
+    // Normalize coordinates
+    vec2 uv = (gl_FragCoord.xy * 2.0 - u_resolution) / min(u_resolution.y, u_resolution.x);
+
+    // Continuous zooming effect
+    float zoomSpeed = 0.1;
+    float zoom = 1.0 + mod(u_time * zoomSpeed, 10.0); // The mod operation will make sure zoom value is between 1 and 11.
+    uv /= zoom;
+
+    // Julia set is also typically visualized in the range -2.0 to 2.0 on both axes
+    vec2 juliaCoords = vec2(2.5 * uv.x, 2.5 * uv.y);
+    vec3 color = julia(juliaCoords);
+
+    gl_FragColor = vec4(color, 1.0);
+}
+
+    
+    `,
+    author: 'Alex',
+    genre:'Fractal'
   }
   ,
   
@@ -687,6 +1015,7 @@ void main() {
 
     `,
     author: 'Alex',
+    genre:'Fractal'
   }
   ,
   
@@ -725,6 +1054,7 @@ void main() {
 
     `,
     author: 'Alex',
+    genre:'Fractal'
   },
 
   {
@@ -773,6 +1103,7 @@ void main() {
     
     `,
     author: 'Alex',
+    genre:'Fractal'
   }
 
   ,
@@ -840,6 +1171,7 @@ void main() {
     
     `,
     author: 'Alex',
+    genre:'Fractal'
   }
 
   ,
@@ -885,6 +1217,7 @@ void main() {
         gl_FragColor = vec4(color, 1.0);
     }`,
     author: 'Alex',
+    genre:'Fractal'
   }
  
 
