@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Keyboard, View, TouchableOpacity, Text, StyleSheet, FlatList, Button,Animated,RefreshControl, Alert, Dimensions   } from 'react-native';
+import { Keyboard, View, TouchableOpacity, Text, StyleSheet, FlatList, Button,Animated,RefreshControl, Alert, Dimensions, ActivityIndicator   } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SwipeListView } from 'react-native-swipe-list-view';
@@ -21,8 +21,10 @@ const ShaderListScreen = ({route}) => {
     const windowHeight = Dimensions.get('window').height;
 
     const API_URL = 'https://floating-coast-37601-51cf65d97a59.herokuapp.com'; 
+    const [connectionFail, setConnectionFail] = useState(false);
 
     const [contextKey, setContextKey] = useState(1);
+    
 
     const [global, setGlobal] = useState(route.params.global ? route.params.global : false);
     const [genre, setGenre] = useState(route.params.genre ? route.params.genre : "all");
@@ -151,7 +153,7 @@ const ShaderListScreen = ({route}) => {
 
 
     const loadShaders = async () => {
-
+      
       if (!global) {
         try {
           // Get all the keys
@@ -189,8 +191,11 @@ const ShaderListScreen = ({route}) => {
 
         }
       }
-      
       };
+
+
+
+      
 
       const onRefresh = React.useCallback(() => {
         setRefreshing(true);
@@ -236,6 +241,8 @@ const ShaderListScreen = ({route}) => {
 
       };
       const renderItem = ({ item }) => (
+
+        
         <View style={styles.item}>
           <Text style={styles.title}>{item.name}</Text>
           <Text style={styles.description}>{item.description}</Text>
@@ -303,7 +310,7 @@ const ShaderListScreen = ({route}) => {
 
       const onRowDidOpen = (rowKey, rowMap) => {
         // Delete the shader
-        deleteShader(rowKey);
+        //deleteShader(rowKey);
     
         // Close the row
         if (rowMap[rowKey]) {
@@ -441,7 +448,9 @@ const ShaderListScreen = ({route}) => {
       try {
         const response = await axios.get(`${API_URL}/shaders`);
         setShaders(response.data);
+        setConnectionFail(false);
       } catch (error) {
+        setConnectionFail(true);
         console.error("Error fetching shaders:", error);
       }
     };
@@ -475,6 +484,29 @@ const ShaderListScreen = ({route}) => {
     };
 
 
+    function renderSpinner() {
+      if (connectionFail) {
+        return (
+          <View>
+            <Text style={{color:'white', textAlign:'center',fontSize:18}}>
+              Connection failure, please swipe down to try again.
+            </Text>
+          </View>
+        );
+      }
+      if (shaders.length ==0 || refreshing) {
+        return (
+          <View style={{paddingTop:'40%'}}>
+            <ActivityIndicator size="large" color="white" />
+            <Text style={{color:'white', textAlign:'center',fontSize:18}}>
+              Retrieving shader data...
+            </Text>
+          </View>
+        );
+      }
+    }
+
+    
 
 
       return (
@@ -489,6 +521,10 @@ const ShaderListScreen = ({route}) => {
 
           <View>
             {renderShader() }
+          </View>
+
+          <View>
+            {renderSpinner()}
           </View>
 
 
