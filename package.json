@@ -1,6 +1,6 @@
 {
   "name": "shadervf",
-  "version": "1.0.36",
+  "version": "1.0.38",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",

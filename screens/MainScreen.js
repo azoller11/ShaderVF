@@ -16,7 +16,7 @@ const MainScreen = () => {
     const DropdownItem = ({ title, code }) => (
         <TouchableOpacity style={styles.dropdownItem} onPress={() => navigation.navigate('TextEditor', { shader: {code:codeList[code].code}})} >
           <View style={{flexDirection: "row", left:20}}>
-          <Icon name="list" type="font-awesome" size={30} color='#3366CC' />
+          <Icon name="list" type="font-awesome" size={30} color='#3366CC'style={{top:7}}  />
             <Text style={styles.text}>{title}</Text>
           </View>
           
@@ -26,7 +26,7 @@ const MainScreen = () => {
       const DropdownPreSavedItem = ({ title, genre }) => (
         <TouchableOpacity style={styles.dropdownItem} onPress={() => navigation.navigate('ShaderList', {global: true, genre: genre})} >
           <View style={{flexDirection: "row", left:20}}>
-          <Icon name="list" type="font-awesome" size={30} color='#3366CC' />
+          <Icon name="list" type="font-awesome" size={30} color='#3366CC' style={{top:7}} />
             <Text style={styles.text}>{title}</Text>
           </View>
           
@@ -45,12 +45,18 @@ const MainScreen = () => {
 
         <ScrollView>
 
-        
+            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ShaderList', {global: true, genre: "submissions"})}>
+              <View style={{flexDirection: "row"}}>
+                  <Icon name="globe" type="font-awesome" size={30} color='lightblue' style={{top:7}}/>
+                  <Text style={styles.text}>Online submissions</Text>
+              </View>
+            </TouchableOpacity>
+
             <TouchableOpacity style={styles.button} onPress={() => setDropdownVisible(!dropdownVisible)}>
-            <View style={{flexDirection: "row"}}>
-                <Icon name="laptop-code" type="font-awesome-5" size={30} color='#3366CC' />
-                <Text style={styles.text}>Advanced Shader Editor</Text>
-            </View>
+              <View style={{flexDirection: "row"}}>
+                  <Icon name="laptop-code" type="font-awesome-5" size={30} color='orange' style={{top:7}}/>
+                  <Text style={styles.text}>Advanced Shader Editor</Text>
+              </View>
             </TouchableOpacity>
             {dropdownVisible && (
             <View style={styles.dropdownContainer}>
@@ -61,21 +67,16 @@ const MainScreen = () => {
             )}
             <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ShaderList', {global: false, genre: "saved"})}>
             <View style={{flexDirection: "row"}}>
-                <Icon name="user" type="font-awesome" size={30} color='#3366CC' />
+                <Icon name="user" type="font-awesome" size={30} color='green' style={{top:7}} />
                 <Text style={styles.text}>My Saved Shaders</Text>
             </View>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ShaderList', {global: true, genre: "submissions"})}>
-            <View style={{flexDirection: "row"}}>
-                <Icon name="globe" type="font-awesome" size={30} color='#3366CC' />
-                <Text style={styles.text}>Online submissions</Text>
-            </View>
-            </TouchableOpacity>
+            
 
             <TouchableOpacity style={styles.button} onPress={() => setDropdownPreVisible(!dropdownPreVisible)}>
             <View style={{flexDirection: "row"}}>
-                <Icon name="file" type="font-awesome" size={30} color='#3366CC' />
+                <Icon name="file" type="font-awesome" size={30} color='white' style={{top:7}} />
                 <Text style={styles.text}>Pre-Saved Shaders</Text>
             </View>
             </TouchableOpacity>
@@ -86,9 +87,10 @@ const MainScreen = () => {
             </View>
             )}
 
+            
             <TouchableOpacity style={styles.button} onPress={() => Alert.alert('Tutorials Coming Soon!')}>
             <View style={{flexDirection: "row"}}>
-                <Icon name="question" type="font-awesome" size={30} color='#3366CC' />
+                <Icon name="question" type="font-awesome" size={30} color='yellow' style={{top:7}} />
                 <Text style={styles.text}>Tutorials</Text>
             </View>
             </TouchableOpacity>
@@ -96,11 +98,11 @@ const MainScreen = () => {
 
             <TouchableOpacity style={styles.button} onPress={() => Alert.alert('Settings Coming Soon!')}>
             <View style={{flexDirection: "row"}}>
-                <Icon name="gear" type="font-awesome" size={30} color='#3366CC' />
+                <Icon name="gear" type="font-awesome" size={30} color='grey' style={{top:7}} />
                 <Text style={styles.text}>Settings</Text>
             </View>
             </TouchableOpacity>
-
+          
         </ScrollView>
 
 
@@ -124,6 +126,7 @@ const MainScreen = () => {
         backgroundColor: '#2A2A2A',
         padding: 10,
         marginVertical: 2,
+        borderRadius: 25,
       },
       dropdownContainer: {
         borderWidth: 1,
@@ -134,6 +137,7 @@ const MainScreen = () => {
         padding: 10,
         borderBottomWidth: 1,
         borderBottomColor: '#2A2A2A',
+        borderRadius: 25,
       }
   });
 

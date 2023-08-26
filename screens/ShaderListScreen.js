@@ -602,10 +602,16 @@ const ShaderListScreen = ({route}) => {
         },
         item: {
             padding: 10,
-            marginVertical: 2,
-            marginHorizontal: 2,
-            backgroundColor:'#2A2A2A'
-            },
+            marginVertical: 12,
+            marginHorizontal: 12,
+            backgroundColor:'#2A2A2A',
+            borderRadius:16,
+            shadowColor: 'white',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.4,
+            shadowRadius: 8,
+            elevation: 5,  // for Android
+        },
         title: {
           fontSize: 32,
           color:'white',

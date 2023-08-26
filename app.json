@@ -2,7 +2,7 @@
   "expo": {
     "name": "ShaderVF",
     "slug": "ShaderVF",
-    "version": "1.0.36",
+    "version": "1.0.38",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
