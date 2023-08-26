@@ -284,7 +284,10 @@ export default function Create3DScreen({ route }) {
     let uResolutionLocation = _gl.getUniformLocation(program.current, 'u_resolution');
     _gl.uniform2f(uResolutionLocation, _gl.drawingBufferWidth, _gl.drawingBufferHeight);
 
- 
+    _gl.enable(_gl.DEPTH_TEST);
+    _gl.depthFunc(_gl.LEQUAL);
+
+
     programRef.current = program;
 
     let modelMatrix = mat4.create();
@@ -303,14 +306,16 @@ export default function Create3DScreen({ route }) {
       mat4.rotateY(modelMatrix, modelMatrix, angle.current);
       mat4.rotateX(modelMatrix, modelMatrix, angle.current / 2);
       mat4.lookAt(viewMatrix, cameraPosition.current, [0, 0, 0], [0, 1, 0]);
+
       modelViewProjectionMatrix = mat4.mul(mat4.create(), projectionMatrix, mat4.mul(mat4.create(), viewMatrix, modelMatrix));
      _gl.uniformMatrix4fv(modelViewProjectionMatrixLocation, false, modelViewProjectionMatrix);
-  
+    
+    
      let uTimeLocation = _gl.getUniformLocation(program.current, 'u_time');
      let time = (Date.now() - startTime) / 1000.0;
      _gl.uniform1f(uTimeLocation, time);
 
-    
+
       _gl.clear(_gl.COLOR_BUFFER_BIT | _gl.DEPTH_BUFFER_BIT);
      // _gl.drawElements(_gl.TRIANGLES, 36, _gl.UNSIGNED_SHORT, 0);
       _gl.drawElements(_gl.TRIANGLES, indices.length, _gl.UNSIGNED_SHORT, 0);
