@@ -377,7 +377,7 @@ export default function Create3DScreen({ route }) {
 
 
       <ScrollView horizontal style={styles.shapeSelector}>
-      {['cube', 'pyramid', 'circle', 'rhombus', 'torus'].map((shape) => (
+      {['cube', 'pyramid'].map((shape) => (
         <TouchableOpacity key={shape} style={styles.shaderButton} onPress={() => drawShape(shape)}>
           <Text style={styles.shaderButtonText}>{shape}</Text>
         </TouchableOpacity>

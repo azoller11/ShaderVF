@@ -431,7 +431,8 @@ const ShaderListScreen = ({route}) => {
       if (permission.granted) {
         try {
           const asset = await MediaLibrary.createAssetAsync(uri);
-          await MediaLibrary.createAlbumAsync('Your Album Name', asset, false);
+          //await MediaLibrary.createAlbumAsync('Your Album Name', asset, false);
+          await MediaLibrary.addAssetsToAlbumAsync(asset, "ShaderVF", false);
           Alert.alert('Success', 'Image saved to camera roll!');
         } catch (error) {
           Alert.alert('Error', 'Failed to save image to camera roll.');
@@ -458,30 +459,44 @@ const ShaderListScreen = ({route}) => {
     const addShader = async (shader) => {
       console.log(shader);
       try {
-        //shader.datesubmitted = new Date().toLocaleString();
         var err = false;
-        if (shader.name == undefined)
-          err = true;
-        if (shader.author == undefined)
-          err = true;
-        if (shader.code == undefined)
-          err = true;
-        if (shader.description == undefined)
-          err = true;
-        if (shader.genre == undefined)
-          err = true;
+        if (shader.name == undefined) err = true;
+        if (shader.author == undefined) err = true;
+        if (shader.code == undefined) err = true;
+        if (shader.description == undefined) err = true;
+        if (shader.genre == undefined) err = true;
         if (err) {
-          Alert.alert('Missing information, unable to submit!');
+          Alert.alert('Missing information', 'Unable to submit!');
           return;
         }
-        const response = await axios.post(`${API_URL}/shaders`, shader);
-        console.log(response.data);
-        Alert.alert('Shader posted successfully!');
+    
+        // Add confirmation dialog using React Native's Alert
+        Alert.alert(
+          'Confirm Post',
+          'Are you sure you want to post this shader?',
+          [
+            { text: 'Cancel', onPress: () => console.log('Post cancelled'), style: 'cancel' },
+            { text: 'OK', onPress: () => postShader(shader) },
+          ],
+          { cancelable: false }
+        );
       } catch (error) {
         console.error("Error adding shader:", error);
-        Alert.alert('Missing information, unable to submit!');
+        Alert.alert('Error', 'Unable to submit due to an error!');
       }
     };
+    
+    const postShader = async (shader) => {
+      try {
+        const response = await axios.post(`${API_URL}/shaders`, shader);
+        console.log(response.data);
+        Alert.alert('Success', 'Shader posted successfully!');
+      } catch (error) {
+        console.error("Error posting shader:", error);
+        Alert.alert('Error', 'There was an error posting the shader.');
+      }
+    };
+    
 
 
     function renderSpinner() {
@@ -571,16 +586,20 @@ const ShaderListScreen = ({route}) => {
                </TouchableOpacity>
           </View>
           <View style={{position: 'absolute', top:screenHeight,left:80}}>
-          <TouchableOpacity
-               style={{}}
-               onPress={() => handleCaptureGif()}>
-                  <Icon name="video" type="font-awesome-5" size={25} color='#3366CC' />
-               </TouchableOpacity>
+            
+         
           </View>
 
         </View>
       );
     };
+    /*
+ <TouchableOpacity
+               style={{}}
+               onPress={() => handleCaptureGif()}>
+                  <Icon name="video" type="font-awesome-5" size={25} color='#3366CC' />
+               </TouchableOpacity>
+    */
 
     const styles = StyleSheet.create({
         container: {

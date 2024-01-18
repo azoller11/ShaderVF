@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { StyleSheet, Text, View, Dimensions, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
+import { StyleSheet, Text, View, Dimensions, TouchableOpacity, ScrollView, Image, Alert, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Icon } from 'react-native-elements';
 import Constants from 'expo-constants';
@@ -100,6 +100,23 @@ const MainScreen = () => {
             <View style={{flexDirection: "row"}}>
                 <Icon name="gear" type="font-awesome" size={30} color='grey' style={{top:7}} />
                 <Text style={styles.text}>Settings</Text>
+            </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.button} onPress={() => {
+              Linking.openURL('https://www.WordUndefined.com')
+              .catch(err => console.error('An error occurred', err));
+
+            }}>
+            <View style={{flexDirection: "row", flexWrap: "wrap"}}>
+                <Icon name="info" type="font-awesome" size={30} color='grey' style={{top:7}} />
+                <Text style={styles.text}> WordUndefined.com</Text>
+                
+                <Text style={{fontSize: 12,
+    color: 'white', 
+    marginTop: 10,
+    marginLeft: 5, 
+    marginRight: 5,}}>We believe that language is a living entity – here you can contribute to its evolution by sharing your own unique interpretations of words. Words defined by experience, culture, context, personal belief, and more.</Text>
             </View>
             </TouchableOpacity>
           

@@ -17,7 +17,7 @@ export default function App() {
       <Stack.Navigator>
 
      
-      <Stack.Screen options={{headerShown:false}} name= 'Home' component={HomeScreen} />
+      <Stack.Screen options={{headerShown:false}} name= 'Home' component={MainScreen} />
       <Stack.Screen options={{headerShown:false}} name= 'Main' component={MainScreen} />
 
       <Stack.Screen options={{headerShown:false}} name= 'ShaderList' component={ShaderListScreen} />
