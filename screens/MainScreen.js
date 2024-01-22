@@ -96,27 +96,58 @@ const MainScreen = () => {
             </TouchableOpacity>
             
 
-            <TouchableOpacity style={styles.button} onPress={() => Alert.alert('Settings Coming Soon!')}>
+            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Settings')}>
             <View style={{flexDirection: "row"}}>
                 <Icon name="gear" type="font-awesome" size={30} color='grey' style={{top:7}} />
                 <Text style={styles.text}>Settings</Text>
             </View>
             </TouchableOpacity>
 
+            
+          
+
+            
+
+            <View > 
+              <Text style={{textAlign:'center', fontSize:18, color:'white', padding:10}}> Other projects by the developer</Text>
+            </View>
+
             <TouchableOpacity style={styles.button} onPress={() => {
               Linking.openURL('https://www.WordUndefined.com')
               .catch(err => console.error('An error occurred', err));
 
             }}>
+
             <View style={{flexDirection: "row", flexWrap: "wrap"}}>
                 <Icon name="info" type="font-awesome" size={30} color='grey' style={{top:7}} />
                 <Text style={styles.text}> WordUndefined.com</Text>
-                
+                <Icon name="link" type="font-awesome" size={30} color='grey' style={{top:7}} />
                 <Text style={{fontSize: 12,
     color: 'white', 
     marginTop: 10,
     marginLeft: 5, 
     marginRight: 5,}}>We believe that language is a living entity – here you can contribute to its evolution by sharing your own unique interpretations of words. Words defined by experience, culture, context, personal belief, and more.</Text>
+            </View>
+            </TouchableOpacity>
+
+            <View > 
+              <Text style={{textAlign:'center', fontSize:18, color:'white'}}> </Text>
+            </View>
+
+            <TouchableOpacity style={styles.button} onPress={() => {
+              Linking.openURL('https://www.linkedin.com/in/alex-zoller-9969a593/')
+              .catch(err => console.error('An error occurred', err));
+
+            }}>
+            <View style={{flexDirection: "row", flexWrap: "wrap"}}>
+                <Icon name="linkedin" type="font-awesome" size={30} color='grey' style={{top:7}} />
+                <Text style={styles.text}> Connect with the developer of ShaderVF on LinkedIn - Alex Z</Text>
+                <Icon name="link" type="font-awesome" size={30} color='grey' style={{top:7}} />
+                <Text style={{fontSize: 12,
+    color: 'white', 
+    marginTop: 10,
+    marginLeft: 5, 
+    marginRight: 5,}}>Lets connect on LinkedIn! I love to connect with other talented and creative developers like you!</Text>
             </View>
             </TouchableOpacity>
           

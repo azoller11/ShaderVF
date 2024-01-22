@@ -125,11 +125,16 @@ const ShaderListScreen = ({route}) => {
  // Clean up resources when the component is unmounted
   useEffect(() => {
     return () => {
+      if (animationFrameRef.current != null) {
+        cancelAnimationFrame(animationFrameRef.current);
+        console.log('removing animationFrameRef..');
+      }
       if (animationFrameId.current != null) {
         cancelAnimationFrame(animationFrameId.current);
         console.log('removing animation..');
       }
       if (gl.current && programRef.current) {
+        
         gl.current.deleteProgram(programRef.current);
         console.log('deleting GL..');
       }
@@ -273,8 +278,6 @@ const ShaderListScreen = ({route}) => {
                 <Icon name="save" type="font-awesome" size={30} color='#3366CC' />
               </TouchableOpacity>
             )}
-
-
 
 
           </View>
@@ -447,7 +450,19 @@ const ShaderListScreen = ({route}) => {
     //Getting online shaders
     const getShaders = async () => {
       try {
-        const response = await axios.get(`${API_URL}/shaders`);
+        // Create a promise that rejects after 30 seconds
+        const timeout = new Promise((resolve, reject) => {
+          setTimeout(() => {
+            reject(new Error('Request timed out'));
+          }, 30000); // 30 seconds
+        });
+    
+        // Race the timeout against the API call
+        const response = await Promise.race([
+          axios.get(`${API_URL}/shaders`),
+          timeout
+        ]);
+    
         setShaders(response.data);
         setConnectionFail(false);
       } catch (error) {
@@ -455,6 +470,7 @@ const ShaderListScreen = ({route}) => {
         console.error("Error fetching shaders:", error);
       }
     };
+    
 
     const addShader = async (shader) => {
       console.log(shader);
@@ -463,8 +479,8 @@ const ShaderListScreen = ({route}) => {
         if (shader.name == undefined) err = true;
         if (shader.author == undefined) err = true;
         if (shader.code == undefined) err = true;
-        if (shader.description == undefined) err = true;
-        if (shader.genre == undefined) err = true;
+        if (shader.description == undefined) shader.description = '';
+        if (shader.genre == undefined) shader.genre = '';
         if (err) {
           Alert.alert('Missing information', 'Unable to submit!');
           return;
@@ -482,34 +498,50 @@ const ShaderListScreen = ({route}) => {
         );
       } catch (error) {
         console.error("Error adding shader:", error);
-        Alert.alert('Error', 'Unable to submit due to an error!');
+        Alert.alert('Error', 'Unable to submit due to an error! Try again, usually works the second go around.');
       }
     };
     
     const postShader = async (shader) => {
       try {
-        const response = await axios.post(`${API_URL}/shaders`, shader);
+        // Create a promise that rejects after 30 seconds
+        const timeout = new Promise((resolve, reject) => {
+          setTimeout(() => {
+            reject(new Error('Request timed out'));
+          }, 30000); // 30 seconds
+        });
+    
+        // Race the timeout against the POST request
+        const response = await Promise.race([
+          axios.post(`${API_URL}/shaders`, shader),
+          timeout
+        ]);
+    
         console.log(response.data);
         Alert.alert('Success', 'Shader posted successfully!');
       } catch (error) {
         console.error("Error posting shader:", error);
-        Alert.alert('Error', 'There was an error posting the shader.');
+        Alert.alert('Error', 'There was an error posting the shader. Please try again, it usually works the second time.');
       }
     };
+    
     
 
 
     function renderSpinner() {
-      if (connectionFail) {
+      if (connectionFail  && genre == 'submissions') {
         return (
-          <View>
-            <Text style={{color:'white', textAlign:'center',fontSize:18}}>
+          <View style={{paddingBottom:2}}>
+            <Text style={{color:'white', textAlign:'center',fontSize:18,paddingTop:'1%'}}>
               Connection failure, please swipe down to try again.
             </Text>
+            <Icon name="arrow-down" type="font-awesome" size={30} color='grey' style={{top:7,paddingBottom:10}} />
           </View>
         );
+      } else {
+
       }
-      if (shaders.length ==0 || refreshing) {
+      if (shaders.length == 0  && genre == 'submissions')  {
         return (
           <View style={{paddingTop:'40%'}}>
             <ActivityIndicator size="large" color="white" />
@@ -518,6 +550,16 @@ const ShaderListScreen = ({route}) => {
             </Text>
           </View>
         );
+      } 
+      if (shaders.length == 0 && genre != 'submissions') {
+        return (
+        <View style={{paddingTop:'40%'}}>
+          <Text style={{color:'white', textAlign:'center',fontSize:18}}>
+            No saved shaders yet! Go check out Online Submissions, Pre-Saved Shaders or start with a template to create a new shader!
+          </Text>
+         
+        </View>
+      );
       }
     }
 
@@ -566,14 +608,14 @@ const ShaderListScreen = ({route}) => {
               <TouchableOpacity
               style={{}}
               onPress={() => setFullScreen(!fullScreen)}>
-                <Icon name="expand" type="font-awesome" size={30} color='#3366CC' />
+                <Icon name="expand" type="font-awesome" size={30} color='#ffcc0c' />
               </TouchableOpacity>
             )}
              {fullScreen==true && (
                <TouchableOpacity
                style={{}}
                onPress={() => setFullScreen(!fullScreen)}>
-                  <Icon name="compress" type="font-awesome" size={30} color='#3366CC' />
+                  <Icon name="compress" type="font-awesome" size={30} color='#ffcc0c' />
                </TouchableOpacity>
             )}
           </View>
@@ -582,7 +624,7 @@ const ShaderListScreen = ({route}) => {
           <TouchableOpacity
                style={{}}
                onPress={() => captureImage()}>
-                  <Icon name="photo" type="font-awesome" size={25} color='#3366CC' />
+                  <Icon name="photo" type="font-awesome" size={25} color='#ffcc0c' />
                </TouchableOpacity>
           </View>
           <View style={{position: 'absolute', top:screenHeight,left:80}}>

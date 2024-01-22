@@ -6,7 +6,8 @@ import HomeScreen from './screens/HomeScreen';
 import ShaderListScreen from './screens/ShaderListScreen';
 import TextEditorScreen from './screens/TextEditorScreen';
 import Create3DScreen from './screens/Create3DScreen';
-import MainScreen from './screens/MainScreen'
+import MainScreen from './screens/MainScreen';
+import SettingsScreen from './screens/SettingsScreen';
 
 export default function App() {
 
@@ -25,6 +26,7 @@ export default function App() {
       <Stack.Screen options={{headerShown:false}} name= 'Create3D' component={Create3DScreen} />
 
       <Stack.Screen options={{headerShown:false}} name= 'TextEditor' component={TextEditorScreen} />
+      <Stack.Screen options={{headerShown:false}} name= 'Settings' component={SettingsScreen} />
 
       </Stack.Navigator>
     </NavigationContainer>

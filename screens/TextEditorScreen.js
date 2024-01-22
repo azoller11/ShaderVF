@@ -1,4 +1,4 @@
-import React, { useEffect, useState,useRef } from 'react';
+import React, { useEffect, useState,useRef,   } from 'react';
 import { Keyboard, StyleSheet, View, Button, Platform, ScrollView, TouchableOpacity, Text, Alert, Modal, TextInput, Dimensions  } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useKeyboard } from '@react-native-community/hooks';
@@ -34,6 +34,8 @@ const TextEditorScreen = ({ route }) => {
   const gl = useRef(null);
   const animationFrameRef = useRef(null);// Declare a variable to keep a reference to the request ID
   const animationFrameId = useRef(null);
+
+  const [glViewKey, setGlViewKey] = useState(0);
 
 
   const [keyboardHeight, setKeyboardHeight] = useState(0);
@@ -96,6 +98,8 @@ const TextEditorScreen = ({ route }) => {
     }
   };
   const onContextCreate = (gl) => {
+    //Keyboard.dismiss();
+    
     const buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, -1, 4, 4, -1]), gl.STATIC_DRAW);
@@ -164,6 +168,10 @@ const TextEditorScreen = ({ route }) => {
       // Clean up resources when the component is unmounted
   useEffect(() => {
     return () => {
+      if (animationFrameRef.current != null) {
+        cancelAnimationFrame(animationFrameRef.current);
+        console.log('removing animationFrameRef..');
+      }
       if (animationFrameId.current != null) {
         cancelAnimationFrame(animationFrameId.current);
         console.log('removing animation..');
@@ -182,6 +190,7 @@ const TextEditorScreen = ({ route }) => {
             <View >
                
                 <GLView
+                key={glViewKey}
                 style={{height:full, width:'100%'}}
                 onContextCreate={(glContext) => {
                   gl.current = glContext;
@@ -205,6 +214,8 @@ const TextEditorScreen = ({ route }) => {
   function fullScreen() {
     Keyboard.dismiss();
     setFull(full === 150 ? windowWidth : 150); 
+    setGlViewKey(glViewKey + 1); // Increment the key to force re-render
+
   }
 
 
@@ -215,6 +226,9 @@ const TextEditorScreen = ({ route }) => {
 
 <View style={styles.buttonContainer}>
         <ScrollView horizontal keyboardShouldPersistTaps='always'>
+        <TouchableOpacity style={styles.button} onPress={ Keyboard.dismiss}>
+            <Text>Close Keyboard</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.button} onPress={() =>  navigation.goBack()}>
             <Text>Back</Text>
           </TouchableOpacity>
@@ -255,7 +269,7 @@ const TextEditorScreen = ({ route }) => {
                 
             },
             ...(keyboard.keyboardShown
-                ? { marginBottom: keyboard.keyboardHeight - (insets.bottom*1) }
+                ? { marginBottom: keyboard.keyboardHeight - (insets.bottom*2) }
                 : {}),
             }}
             language="glsl" // change to your preferred language if 'glsl' doesn't work
@@ -267,11 +281,51 @@ const TextEditorScreen = ({ route }) => {
    
       <Modal
         animationType="slide"
-        transparent={false}
+        transparent={true}
         visible={modalVisible}
         onRequestClose={() => Alert.alert('Modal has been closed.')}
       >
         <View style={styles.modalContainer}>
+          <View style={styles.modalButtonContainer}>
+            <Button title="Submit" onPress={saveShader} />
+            <Button title="Cancel" onPress={() => setModalVisible(false)} />
+          </View>
+
+          <TextInput
+            placeholder="Shader Name"
+            onChangeText={setShaderName}
+            style={styles.input}
+            value={shaderName}
+          />
+
+        
+
+          <TextInput
+            placeholder="Shader Author"
+            onChangeText={setShaderAuthor}
+            style={styles.input}
+            value={shaderAuthor}
+          />
+
+         
+
+          <TextInput
+            multiline
+            placeholder="Shader Code"
+            onChangeText={setCode}
+            style={styles.shaderCodeInput}
+            value={code}
+          />
+        </View>
+
+
+      </Modal>
+    </View>
+  );
+};
+
+/*
+<View style={styles.modalContainer}>
           <View style={styles.modalButtonContainer}>
             <Button title="Submit" onPress={saveShader} />
             <Button title="Cancel" onPress={() => setModalVisible(false)} />
@@ -313,10 +367,11 @@ const TextEditorScreen = ({ route }) => {
             value={code}
           />
         </View>
-      </Modal>
-    </View>
-  );
-};
+
+
+*/ 
+
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,

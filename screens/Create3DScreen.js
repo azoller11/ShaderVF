@@ -85,30 +85,9 @@ export default function Create3DScreen({ route }) {
           0, 3, 1,  // Left face
           1, 3, 2,  // Bottom face
       ]));
+        break;
      
-        break;
-      case 'circle':
-        // draw circle
-        const sphereData = createSphere(1, 30, 30);
-        v = (sphereData.vertices);
-        i = (sphereData.indices);
-        break;
-      case 'rhombus':
-        // draw rhombus
-        v = (new Float32Array([
-          -0.5, -0.5, 0.0, // bottom left point
-          0.0, 0.5, 0.0, // top point
-          0.5, -0.5, 0.0, // bottom right point
-          0.0, -1.5, 0.0, // bottom point
-        ]));
-        i = (new Uint16Array([0, 1, 2, 2, 3, 0]));
-        break;
-      case 'torus':
-        // draw torus
-        var torusData = createTorus(1, 0.4, 16, 8);
-        v = (new Float32Array(torusData.vertices.flat()));
-        i = (new Uint16Array(torusData.indices.flat()));
-        break;
+      
       default:
         break;
     }
@@ -117,77 +96,7 @@ export default function Create3DScreen({ route }) {
     updateBuffers(gl.current, v, i);
   }
 
-
-  function createTorus(ringRadius, tubeRadius, ringSegments, tubeSegments) {
-    var vertices = [];
-    var indices = [];
-
-    for (var i = 0; i <= ringSegments; ++i) {
-        for (var j = 0; j <= tubeSegments; ++j) {
-            var u = i / ringSegments * 2 * Math.PI;
-            var v = j / tubeSegments * 2 * Math.PI;
-
-            var center = [ringRadius * Math.cos(u), ringRadius * Math.sin(u), 0];
-            var direction = [Math.cos(u), Math.sin(u), 0];
-            var point = [tubeRadius * Math.cos(v), tubeRadius * Math.sin(v), 0];
-
-            vertices.push([
-                center[0] + direction[0] * point[0] - direction[1] * point[1],
-                center[1] + direction[1] * point[0] + direction[0] * point[1],
-                point[2]
-            ]);
-
-            if (i < ringSegments && j < tubeSegments) {
-                var a = i * (tubeSegments + 1) + j;
-                var b = a + tubeSegments + 1;
-
-                indices.push([a, b, a + 1]);
-                indices.push([b, b + 1, a + 1]);
-            }
-        }
-    }
-
-    return {vertices, indices};
-}
-
-  function createSphere(radius, latBands, longBands) {
-    var vertices = [];
-    var indices = [];
-
-    for (let latNumber = 0; latNumber <= latBands; latNumber++) {
-        let theta = latNumber * Math.PI / latBands;
-        let sinTheta = Math.sin(theta);
-        let cosTheta = Math.cos(theta);
-
-        for (let longNumber = 0; longNumber <= longBands; longNumber++) {
-            let phi = longNumber * 2 * Math.PI / longBands;
-            let sinPhi = Math.sin(phi);
-            let cosPhi = Math.cos(phi);
-
-            let x = cosPhi * sinTheta;
-            let y = cosTheta;
-            let z = sinPhi * sinTheta;
-
-            vertices.push(radius * x, radius * y, radius * z);
-        }
-    }
-
-    for (let latNumber = 0; latNumber < latBands; latNumber++) {
-      for (let longNumber = 0; longNumber < longBands; longNumber++) {
-          let first = (latNumber * (longBands + 1)) + longNumber;
-          let second = first + longBands + 1;
   
-          indices.push(first, second, first + 1);
-          indices.push(first + 1, second, second + 1);
-      }
-  }
-  
-
-    return {
-        vertices: new Float32Array(vertices),
-        indices: new Uint16Array(indices),
-    };
-}
 
   //////////Shader selector 
   const [shaderData, setShaderData] = useState([]);
@@ -348,6 +257,10 @@ export default function Create3DScreen({ route }) {
   // Clean up resources when the component is unmounted
   useEffect(() => {
     return () => {
+      if (animationFrameRef.current != null) {
+        cancelAnimationFrame(animationFrameRef.current);
+        console.log('removing animationFrameRef..');
+      }
       if (animationFrameId.current != null) {
         cancelAnimationFrame(animationFrameId.current);
         console.log('removing animation..');
