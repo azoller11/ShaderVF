@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GLView } from 'expo-gl';
 import { mat4 } from 'gl-matrix';
 import { useNavigation } from '@react-navigation/native';
+import { Icon } from 'react-native-elements';
 
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -118,6 +119,12 @@ const TextEditorScreen = ({ route }) => {
     gl.shaderSource(fragmentShader, code);
     gl.compileShader(fragmentShader);
 
+    if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+      console.log('ERROR compiling fragment shader!', gl.getShaderInfoLog(fragmentShader));
+      //alert(gl.getShaderInfoLog(fragmentShader));
+      return;
+    }
+
     const program = gl.createProgram();
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
@@ -218,35 +225,43 @@ const TextEditorScreen = ({ route }) => {
 
   }
 
+  function environmentView() {
+    navigation.navigate('Enviornment', { shader: {code:code} })
+  }
+
 
 
   
   return (
-    <View style={{flex: 1, backgroundColor:'#2A2A2A'}}>
+    <View style={{flex: 1, backgroundColor:'black'}}>
 
-<View style={styles.buttonContainer}>
+<View style={[styles.buttonContainer]}>
         <ScrollView horizontal keyboardShouldPersistTaps='always'>
-        <TouchableOpacity style={styles.button} onPress={ Keyboard.dismiss}>
-            <Text>Close Keyboard</Text>
+        <TouchableOpacity style={styles.button} onPress={() =>  navigation.goBack()}>
+            <Icon name="arrow-left" type="material-community" size={30} color='white' style={{top:0}} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={() =>  navigation.goBack()}>
-            <Text>Back</Text>
+          <TouchableOpacity style={styles.button} onPress={ Keyboard.dismiss}>
+            <Icon name="keyboard-close" type="material-community" size={30} color='white' style={{top:0}} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.button} onPress={() => setModalVisible(true)}>
-            <Text>Save</Text>
+            <Icon name="content-save" type="material-community" size={30} color='white' style={{top:0}} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.button} onPress={() => setFontSize(fontSize + 2)}>
-            <Text>A+</Text>
+          < Icon name="format-font-size-increase" type="material-community" size={30} color='white' style={{top:0}} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.button} onPress={() => setFontSize(fontSize - 2)}>
-            <Text>A-</Text>
+            <Icon name="format-font-size-decrease" type="material-community" size={30} color='white' style={{top:0}} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={() => prev()}>
-            <Text>Toggle Preview</Text>
+          <TouchableOpacity style={styles.button} onPress={() => environmentView()}>
+            <Icon name="cube-outline" type="material-community" size={30} color='white' style={{top:0}} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.button} onPress={() => fullScreen()}>
-            <Text>Preview Fullscreen</Text>
+            <Icon name="fullscreen" type="material-community" size={30} color='white' style={{top:0}} />
           </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => prev()}>
+            <Icon name="fit-to-screen" type="material-community" size={30} color='white' style={{top:0}} />
+          </TouchableOpacity>
+
           
           
         </ScrollView>
@@ -379,15 +394,15 @@ const styles = StyleSheet.create({
       buttonContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        backgroundColor: '#2A2A2A',
         padding:20,
-        bottom:-20
+        bottom:-20,
+
       },
       button: {
-        margin: 10,
-        padding: 10,
-        backgroundColor: 'lightgrey',
-        borderRadius: 5,
+        margin: 1,
+        padding: 6,
+        //backgroundColor: 'lightgrey',
+        borderRadius: 2,
         justifyContent: 'center',
         alignItems: 'center',
       },

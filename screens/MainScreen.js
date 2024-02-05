@@ -63,11 +63,13 @@ const MainScreen = () => {
             <DropdownItem title="New empty template" code="0" />
             <DropdownItem title="New basic template" code="1" />
             <DropdownItem title="New animated template" code="2" />
+            <DropdownItem title="Basic 3D Cube template" code="3" />
+            <DropdownItem title="Animated 3D Cube template" code="4" />
             </View>
             )}
             <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ShaderList', {global: false, genre: "saved"})}>
             <View style={{flexDirection: "row"}}>
-                <Icon name="user" type="font-awesome" size={30} color='green' style={{top:7}} />
+                <Icon name="user" type="font-awesome" size={30} color='cyan' style={{top:7}} />
                 <Text style={styles.text}>My Saved Shaders</Text>
             </View>
             </TouchableOpacity>
@@ -76,7 +78,7 @@ const MainScreen = () => {
 
             <TouchableOpacity style={styles.button} onPress={() => setDropdownPreVisible(!dropdownPreVisible)}>
             <View style={{flexDirection: "row"}}>
-                <Icon name="file" type="font-awesome" size={30} color='white' style={{top:7}} />
+                <Icon name="database" type="font-awesome" size={30} color='white' style={{top:7}} />
                 <Text style={styles.text}>Pre-Saved Shaders</Text>
             </View>
             </TouchableOpacity>
@@ -87,10 +89,20 @@ const MainScreen = () => {
             </View>
             )}
 
-            
-            <TouchableOpacity style={styles.button} onPress={() => Alert.alert('Tutorials Coming Soon!')}>
+     
+
+          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Enviornment',)}>
+
+
             <View style={{flexDirection: "row"}}>
-                <Icon name="question" type="font-awesome" size={30} color='yellow' style={{top:7}} />
+                <Icon name="cube-outline" type="material-community" size={40} color='yellow' style={{top:7}} />
+                <Text style={styles.text}>3D Enviornment</Text>
+            </View>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Tutorial')}>
+            <View style={{flexDirection: "row"}}>
+                <Icon name="school" type="material-community" size={30} color='yellow' style={{top:7}} />
                 <Text style={styles.text}>Tutorials</Text>
             </View>
             </TouchableOpacity>
@@ -231,6 +243,58 @@ void main() {
     gl_FragColor = vec4(red, green, uv.y, 1.0);
 }
           `},
+          {code:
+          `precision highp float;
+          varying vec3 vNormal;
+          varying vec2 vTexCoord; // Receive texture coordinate
+          uniform sampler2D uTexture; // Texture sampler
+          uniform vec2 u_resolution;
+          uniform float u_time;
+          
+          
+          void main() {
+            vec3 light = normalize(vec3(1.0, 1.0, 1.0));
+            float brightness = dot(vNormal, light) * 0.5 + 0.5;
+            vec4 texColor = texture2D(uTexture, vTexCoord); // Sample texture
+            gl_FragColor = texColor * vec4(brightness, brightness, brightness, 1.0);
+          }`  
+          
+          },
+          {code:
+          `precision highp float;
+
+          varying vec3 vNormal;
+          varying vec2 vTexCoord;
+          uniform sampler2D uTexture;
+          uniform float u_time; // Time uniform for dynamic effects
+          uniform vec3 tint; // Tint color uniform
+          
+          void main() {
+              vec3 light = normalize(vec3(1.0, 1.0, 1.0));
+          
+              // Waving effect
+              vec2 waveTexCoord = vTexCoord;
+              waveTexCoord.x += sin(waveTexCoord.y * 10.0 + u_time) * 0.02;
+              waveTexCoord.y += cos(waveTexCoord.x * 10.0 + u_time) * 0.02;
+          
+              // Base texture color
+              vec4 texColor = texture2D(uTexture, waveTexCoord);
+          
+              // Invert colors
+              texColor.rgb = 1.0 - texColor.rgb;
+          
+              // Apply brightness and tint
+              float brightness = dot(vNormal, light) * 0.5 + 0.5;
+              texColor.rgb = texColor.rgb * brightness * tint;
+          
+              // Rim lighting effect
+              float rim = 1.0 - max(dot(vNormal, light), 0.0);
+              rim = smoothstep(0.2, 1.0, rim);
+              texColor.rgb += rim * 0.3; // Adjust the rim intensity
+          
+              gl_FragColor = texColor;
+          }`
+          }
     
 
   ];

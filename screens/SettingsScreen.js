@@ -1,13 +1,14 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, Switch, Button, StyleSheet, ScrollView, TextInput } from 'react-native';
+import { View, Text, Switch, Button, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
 import { GLView } from 'expo-gl';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { useNavigation } from '@react-navigation/native';
+import { Icon } from 'react-native-elements';
 
 const SettingsScreen = () => {
     const [isEnabled, setIsEnabled] = useState(false);
     const glViewRef = useRef(null);
-
+    const navigation = useNavigation();
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
 
     const clearGLContext = () => {
@@ -35,8 +36,14 @@ const SettingsScreen = () => {
 */
 
     return (
+        
         <ScrollView style={styles.container}>
-           
+              <View style={{position: 'absolute', top:60,left:25}}>
+            
+            <TouchableOpacity style={[{top:0}]} onPress={() => navigation.goBack()}>
+            <Icon name="arrow-left" type="material-community" size={30} color='#ffcc0c'style={{}}  />
+        </TouchableOpacity>
+            </View>
             <View style={styles.buttonContainer}>
                 <Button title="Clear GL Context" onPress={clearGLContext} />
             </View>

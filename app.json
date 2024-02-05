@@ -2,14 +2,14 @@
   "expo": {
     "name": "ShaderVF",
     "slug": "ShaderVF",
-    "version": "1.0.42",
+    "version": "1.0.44",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#eef5f6"
     },
     "assetBundlePatterns": [
       "**/*"

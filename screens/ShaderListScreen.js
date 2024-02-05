@@ -250,44 +250,47 @@ const ShaderListScreen = ({route}) => {
         
         <View style={styles.item}>
           <Text style={styles.title}>{item.name}</Text>
-          <Text style={styles.description}>{item.description}</Text>
+          {/*<Text style={styles.description}>{item.description}</Text>*/}
+          
+        
+          <View style={{flexDirection: "row" ,marginLeft: 0, justifyContent: 'space-evenly'}}>
+            {/*<Text style={styles.smalldescription}>Submitted: {item.datesubmitted}</Text>*/}
+            
 
+          </View>
 
           <View style={{flexDirection: "row" ,marginLeft: 0, padding:10, justifyContent: 'space-evenly'}}>
             
             
             <TouchableOpacity style={{}} onPress={() => {setSelectedShader(item);}}>
-              <Icon name="eye" type="font-awesome" size={30} color='#3366CC' />
+              <Icon name="eye" type="font-awesome" size={30} color='white' />
             </TouchableOpacity>
             
             <TouchableOpacity style={{}} onPress={() => navigation.navigate('TextEditor', { shader: item })}>
-              <Icon name="code" type="font-awesome" size={30} color='#3366CC' />
+              <Icon name="code" type="font-awesome" size={30}  color='white'/>
             </TouchableOpacity>
 
-            <TouchableOpacity style={{}} onPress={() => navigation.navigate('Create3D', { shader: item })}>
-              <Icon name="cube" type="font-awesome" size={30} color='#3366CC' />
+            <TouchableOpacity style={{}} onPress={() => navigation.navigate('Enviornment', { shader: item })}>
+              <Icon name="cube-outline" type="material-community" size={35} color='white' />
             </TouchableOpacity>
             {(global==false && genre=="saved") && (
               <TouchableOpacity style={{}} onPress={() => addShader(item)}>
-                <Icon name="globe" type="font-awesome" size={30} color='#3366CC' />
+                <Icon name="globe" type="font-awesome" size={30} color='white' />
               </TouchableOpacity>
             )}
             
             {global==true && (
               <TouchableOpacity style={{}} onPress={() => saveItem(item)}>
-                <Icon name="save" type="font-awesome" size={30} color='#3366CC' />
+                <Icon name="save" type="font-awesome" size={30} color='white' />
               </TouchableOpacity>
             )}
 
 
           </View>
+         
           <View style={{flexDirection: "row" ,marginLeft: 0, justifyContent: 'space-evenly'}}>
             <Text style={styles.smalldescription}>Author: {item.author}</Text>
-            <Text style={styles.smalldescription}>Genre: {item.genre}</Text>
-          </View>
-          <View style={{flexDirection: "row" ,marginLeft: 0, justifyContent: 'space-evenly'}}>
-            <Text style={styles.smalldescription}>Submitted: {item.datesubmitted}</Text>
-
+            {/*<Text style={styles.smalldescription}>Genre: {item.genre}</Text>*/}
           </View>
           
 
@@ -462,12 +465,13 @@ const ShaderListScreen = ({route}) => {
           axios.get(`${API_URL}/shaders`),
           timeout
         ]);
-    
-        setShaders(response.data);
+
+        setShaders(response.data.reverse());
         setConnectionFail(false);
       } catch (error) {
         setConnectionFail(true);
         console.error("Error fetching shaders:", error);
+        getShaders();
       }
     };
     
@@ -504,6 +508,11 @@ const ShaderListScreen = ({route}) => {
     
     const postShader = async (shader) => {
       try {
+
+        /********************************************************************************************************************** */
+
+        //NEED TO COMPILE THE SHADER WITH ZERO ERRORS BEFORE SUBMITTING!!!!
+
         // Create a promise that rejects after 30 seconds
         const timeout = new Promise((resolve, reject) => {
           setTimeout(() => {
@@ -521,7 +530,8 @@ const ShaderListScreen = ({route}) => {
         Alert.alert('Success', 'Shader posted successfully!');
       } catch (error) {
         console.error("Error posting shader:", error);
-        Alert.alert('Error', 'There was an error posting the shader. Please try again, it usually works the second time.');
+        postShader(shader);
+        //Alert.alert('Error', 'There was an error posting the shader. Please try again, it usually works the second time.');
       }
     };
     
@@ -530,12 +540,15 @@ const ShaderListScreen = ({route}) => {
 
     function renderSpinner() {
       if (connectionFail  && genre == 'submissions') {
+        getShaders();
         return (
           <View style={{paddingBottom:2}}>
-            <Text style={{color:'white', textAlign:'center',fontSize:18,paddingTop:'1%'}}>
-              Connection failure, please swipe down to try again.
+            <Text style={{color:'white', textAlign:'center',fontSize:18,paddingTop:'20%'}}>
+              Connection failure, retrying...
             </Text>
-            <Icon name="arrow-down" type="font-awesome" size={30} color='grey' style={{top:7,paddingBottom:10}} />
+            <ActivityIndicator size="large" color="white" />
+            {/*<Icon name="arrow-down" type="font-awesome" size={30} color='grey' style={{top:7,paddingBottom:10}} />
+            */}
           </View>
         );
       } else {
@@ -627,9 +640,13 @@ const ShaderListScreen = ({route}) => {
                   <Icon name="photo" type="font-awesome" size={25} color='#ffcc0c' />
                </TouchableOpacity>
           </View>
-          <View style={{position: 'absolute', top:screenHeight,left:80}}>
+
+
+          <View style={{position: 'absolute', top:60,left:25}}>
             
-         
+          <TouchableOpacity style={[{top:0}]} onPress={() => navigation.goBack()}>
+          <Icon name="arrow-left" type="material-community" size={30} color='#ffcc0c'style={{}}  />
+      </TouchableOpacity>
           </View>
 
         </View>
@@ -670,7 +687,7 @@ const ShaderListScreen = ({route}) => {
             shadowColor: 'white',
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.4,
-            shadowRadius: 8,
+            shadowRadius: 3,
             elevation: 5,  // for Android
         },
         title: {
